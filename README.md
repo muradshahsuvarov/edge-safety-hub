@@ -108,6 +108,9 @@ The web interface shows:
 - Worker profiles and device history
 - Unread alert indicator 🔔
 
+![Dashboard Screenshot](./assets/dashboard.png)
+
+
 ---
 
 ## ✅ Fully Tested
