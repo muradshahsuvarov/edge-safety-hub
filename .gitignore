@@ -1,0 +1,60 @@
+# 🔹 Python-related ignores
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.env
+*.venv
+venv/
+env/
+Pipfile.lock
+poetry.lock
+
+# 🔹 Virtual environments
+services/**/venv/
+backend/**/venv/
+backend/venv/
+backend/env/
+
+# 🔹 FastAPI/Uvicorn logs
+logs/
+*.log
+
+# 🔹 Docker-related ignores
+docker-compose.override.yml
+*.pid
+.dockerignore
+.env
+config.json
+docker-db/
+volumes/
+secrets/
+config/secrets/
+data/
+postgres_data/
+
+# 🔹 Database & migrations
+*.sqlite3
+*.db
+*.sql
+__migrations__/
+migrations/
+alembic/
+
+# 🔹 MQTT-related ignores
+mosquitto_data/
+mosquitto/config/passwordfile
+mosquitto/log/
+mosquitto/persistence/
+
+# 🔹 VS Code/IDE-related ignores
+.vscode/
+.idea/
+*.iml
+*.sublime-workspace
+
+# 🔹 OS/Editor-specific ignores
+.DS_Store
+Thumbs.db
+*.swp
+*.swo

@@ -1,0 +1,15 @@
+# Database interaction
+SQLAlchemy==1.4.41  # ORM for database operations
+psycopg2-binary==2.9.3  # PostgreSQL adapter
+
+# JSON handling
+jsonlib-python3==1.6.1  # Library for JSON parsing and encoding
+
+# Email notifications
+sendgrid==6.9.7  # SendGrid API client for sending emails
+
+# SMS notifications
+twilio==7.15.1  # Twilio API client for sending SMS messages
+
+# Serial communication (for Iridium modem)
+pyserial==3.5

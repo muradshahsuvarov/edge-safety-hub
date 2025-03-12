@@ -1,0 +1,153 @@
+  .sidebar {
+    background-color: #111;
+    color: white;
+    padding: 1rem;
+    width: 300px;
+    overflow-y: auto;
+  }
+  
+  .company-title {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+  }
+  
+  .view-toggle {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .view-toggle button {
+    flex: 1;
+    padding: 0.5rem;
+    background-color: #222;
+    color: white;
+    border: 1px solid #444;
+    cursor: pointer;
+  }
+  
+  .view-toggle button.active {
+    background-color: #0a84ff;
+    border-color: #0a84ff;
+  }
+  
+  .radio-options label {
+    display: block;
+    margin: 0.25rem 0;
+  }
+  
+  .search-box {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin: 1rem 0;
+  }
+  
+  .search-box input {
+    padding: 0.4rem;
+    background-color: #222;
+    border: 1px solid #444;
+    color: white;
+  }
+  
+  .search-box button {
+    background-color: #0a84ff;
+    color: white;
+    border: none;
+    padding: 0.4rem;
+    cursor: pointer;
+  }
+  
+  .clear-link {
+    font-size: 0.8rem;
+    color: #999;
+    text-decoration: underline;
+    cursor: pointer;
+    margin-top: 8px;
+    display: inline-block;
+  }
+  
+  .locate-toggle {
+    display: flex;
+    justify-content: space-between;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+    color: #ccc;
+  }
+  
+  .live-feed-title {
+    margin-top: 1.5rem;
+    font-size: 1.1rem;
+  }
+  
+  .checkbox {
+    display: block;
+    margin: 0.4rem 0;
+  }
+  
+  .device-list {
+    margin-top: 1rem;
+  }
+
+  .filter-options {
+    margin: 1.5rem 0;
+  }
+  
+  .filter-title {
+    font-size: 0.95rem;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 0.5rem;
+  }
+  
+  .filter-checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding-left: 0.5rem;
+  }
+  
+  .filter-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+    color: #ddd;
+  }
+
+  /* Wraps entire left sidebar and the toggle button */
+.left-sidebar-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  display: flex;
+  z-index: 1000;
+  transform: translateX(0%);
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Slide out of view */
+.left-sidebar-wrapper.hidden {
+  transform: translateX(-100%);
+}
+
+/* Left sidebar toggle button (on the right edge of the sidebar) */
+.toggle-left-sidebar-btn {
+  position: absolute;
+  right: -40px;
+  top: 20px;
+  background-color: #0a84ff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 0 5px 5px 0;
+  cursor: pointer;
+  z-index: 1100;
+  transition: background-color 0.3s ease;
+}
+
+.toggle-left-sidebar-btn:hover {
+  background-color: #0066cc;
+}
+

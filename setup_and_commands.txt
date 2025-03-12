@@ -1,0 +1,165 @@
+# ==============================
+# 🛠 BUILD SERVICES
+# ==============================
+echo "Building all Docker services from scratch..."
+docker-compose build --no-cache
+
+# ==============================
+# 🚀 START SERVICES
+# ==============================
+echo "Starting all Docker services..."
+docker-compose up -d
+
+# ==============================
+# 🏗 RUN VIRTUAL ENVIRONMENT (venv)
+# ==============================
+echo "Activating virtual environment (venv)..."
+# For PowerShell
+venv\Scripts\Activate.ps1
+# For other shells
+venv\Scripts\activate
+
+# ==============================
+# 🗄 ENTER POSTGRESQL CONTAINER
+# ==============================
+echo "Entering PostgreSQL container..."
+docker exec -it postgres_db psql -U postgres -d sensors_db
+
+# ==============================
+# 🔑 ENTER POSTGRESQL CONTAINER WITH PASSWORD PROMPT
+# ==============================
+echo "Entering PostgreSQL with password prompt..."
+docker exec -it postgres psql -U user -d sensors_db -W
+
+# ==============================
+# 🐳 ENTER POSTGRESQL SHELL
+# ==============================
+echo "Entering PostgreSQL bash shell..."
+docker exec -it postgres_db bash
+
+# ==============================
+# 🐳 RUN DOCKER COMPOSE WITH REBUILD
+# ==============================
+echo "Running Docker Compose with build..."
+docker-compose up --build
+
+# ==============================
+# 🔗 ENTER KAFKA CONTAINER
+# ==============================
+echo "Entering Kafka container..."
+docker exec -it kafka sh
+
+# ==============================
+# 📡 CONSUME MESSAGES FROM KAFKA
+# ==============================
+echo "Consuming messages from Kafka topic 'sensor_data'..."
+docker exec -it kafka sh -c "kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic sensor_data --from-beginning"
+
+# ==============================
+# 🛠 FIX DUPLICATE ENTRIES (Optional)
+# ==============================
+echo "Ensuring Kafka Consumer commits offsets after processing messages..."
+docker exec -it kafka_consumer_service sh -c "echo 'consumer.commit()' >> /app/consumer.py"
+
+# ==============================
+# 🔄 RESET KAFKA (Optional)
+# ==============================
+echo "Deleting and recreating the Kafka topic to clear old messages..."
+docker exec -it kafka sh -c "kafka-topics.sh --delete --topic sensor_data --bootstrap-server kafka:9092"
+docker exec -it kafka sh -c "kafka-topics.sh --create --topic sensor_data --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1"
+
+# ==============================
+# 🌡️ GAS DETECTOR SENSOR COMMANDS
+# ==============================
+
+# 🔹 Activate Virtual Environment
+echo "Activating virtual environment for Gas Detector..."
+source venv/bin/activate
+
+# 🔹 Install Required Python Packages
+echo "Installing dependencies for Gas Detector..."
+pip install -r requirements.txt
+
+# 🔹 Run Gas Detector Script (Online Mode)
+echo "Running Gas Detector in Online Mode (publishing to MQTT)..."
+python gas_detector.py --online
+
+# 🔹 Run Gas Detector Script (Offline Mode - saves to SQLite)
+echo "Running Gas Detector in Offline Mode (storing locally)..."
+python gas_detector.py
+
+# 🔹 Insert Dummy Data into SQLite (for offline testing)
+echo "Manually inserting Gas Detector data into SQLite..."
+sqlite3 sensor_data.db "INSERT INTO sensor_data (device_id, sensor_type, value, synced) VALUES ('gas_sensor_001', 'gas_detector', '{\"gas_level\": 60.5}', 0);"
+
+# 🔹 Sync Offline Data to MQTT (when online)
+echo "Syncing offline data from SQLite to MQTT..."
+python gas_detector.py --sync
+
+# 🔹 Track MQTT Messages for Gas Detector
+echo "Subscribing to MQTT topic 'sensor/gas_detector'..."
+docker exec -it mosquitto_broker sh -c "mosquitto_sub -h mosquitto_broker -t sensor/gas_detector -v"
+
+# 🔹 Publish a Manual Test Message to MQTT for Gas Detector
+echo "Publishing test message to MQTT (Gas Detector)..."
+docker exec -it mosquitto_broker sh -c "mosquitto_pub -h mosquitto_broker -t sensor/gas_detector -m '{\"device_id\": \"test_device\", \"sensor_type\": \"gas\", \"value\": {\"gas_level\": 50.1}, \"timestamp\": \"2025-03-08 18:30:00\"}'"
+
+# 🔹 Restart MQTT-to-Kafka Service
+echo "Restarting MQTT-to-Kafka Bridge..."
+docker-compose restart mqtt-to-kafka
+
+# 🔹 Check if Data from MQTT Reached Kafka (Gas Detector)
+echo "Checking if Gas Detector data from MQTT successfully reached Kafka..."
+docker exec -it kafka sh -c "kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic sensor_data --from-beginning"
+
+# 🔹 Check if Data Reached PostgreSQL from Kafka (Gas Detector)
+echo "Verifying if Gas Detector data reached PostgreSQL..."
+docker exec -it postgres_db psql -U postgres -d sensors_db -c "SELECT * FROM sensor_data WHERE sensor_type='gas_detector';"
+
+echo "✅ Gas Detector Data Pipeline Fully Tested!"
+
+# ==============================
+# 🚶 MOTION SENSOR COMMANDS
+# ==============================
+
+# 🔹 Run Motion Sensor Script (Online Mode)
+echo "Running Motion Sensor in Online Mode (publishing to MQTT)..."
+python motion_sensor.py --online
+
+# 🔹 Run Motion Sensor Script (Offline Mode - saves to SQLite)
+echo "Running Motion Sensor in Offline Mode (storing locally)..."
+python motion_sensor.py
+
+# 🔹 Insert Dummy Data into SQLite (for offline testing)
+echo "Manually inserting Motion Sensor data into SQLite..."
+sqlite3 sensor_data.db "INSERT INTO motion_sensor_data (device_id, sensor_type, value, synced) VALUES ('motion_sensor_001', 'motion_sensor', '{\"acceleration\": 1.2, \"fall_detected\": false, \"latitude\": 40.7128, \"longitude\": -74.0060}', 0);"
+
+# 🔹 Sync Offline Motion Data to MQTT (when online)
+echo "Syncing offline motion sensor data from SQLite to MQTT..."
+python motion_sensor.py --sync
+
+# 🔹 Track MQTT Messages for Motion Sensor
+echo "Subscribing to MQTT topic 'sensor/motion_sensor'..."
+docker exec -it mosquitto_broker sh -c "mosquitto_sub -h mosquitto_broker -t sensor/motion_sensor -v"
+
+# 🔹 Publish a Manual Test Message to MQTT for Motion Sensor
+echo "Publishing test message to MQTT (Motion Sensor)..."
+docker exec -it mosquitto_broker sh -c "mosquitto_pub -h mosquitto_broker -t sensor/motion_sensor -m '{\"device_id\": \"test_device\", \"sensor_type\": \"motion\", \"value\": {\"acceleration\": 1.5, \"fall_detected\": true, \"latitude\": 40.713, \"longitude\": -74.007}, \"timestamp\": \"2025-03-08 18:30:00\"}'"
+
+# 🔹 Restart MQTT-to-Kafka Service
+echo "Restarting MQTT-to-Kafka Bridge for Motion Sensor..."
+docker-compose restart mqtt-to-kafka
+
+# 🔹 Check if Data from MQTT Reached Kafka (Motion Sensor)
+echo "Checking if Motion Sensor data from MQTT successfully reached Kafka..."
+docker exec -it kafka sh -c "kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic sensor_data --from-beginning"
+
+# 🔹 Check if Data Reached PostgreSQL from Kafka (Motion Sensor)
+echo "Verifying if Motion Sensor data reached PostgreSQL..."
+docker exec -it postgres_db psql -U postgres -d sensors_db -c "SELECT * FROM sensor_data WHERE sensor_type='motion_sensor';"
+
+# 🔹 Check Motion Sensor Data in SQLite
+echo "Checking Motion Sensor Data in SQLite..."
+docker exec -it sqlite_to_kafka_service sh -c "sqlite3 /app/sensor_data.db 'SELECT * FROM motion_sensor_data;'"
+
+echo "✅ Motion Sensor Data Pipeline Fully Tested!"

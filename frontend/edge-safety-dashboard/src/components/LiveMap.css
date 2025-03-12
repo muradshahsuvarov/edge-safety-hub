@@ -1,0 +1,46 @@
+/* Ensure the map container takes full height */
+.map-container {
+  flex: 1;
+  height: 100vh;
+}
+
+/* Trick Leaflet: Center the bottomleft control */
+.leaflet-bottom.leaflet-left {
+  left: 50% !important;
+  transform: translateX(-50%);
+  bottom: 20px !important;
+}
+
+/* Make the control horizontal */
+.leaflet-bottom.leaflet-left .leaflet-control-zoom {
+  display: flex !important;
+  flex-direction: row !important;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+/* Zoom buttons styling */
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+  background-color: #fff;
+  color: #000;
+  font-size: 1.5rem;
+  height: 30px;
+  width: 30px;
+  border: none;
+  text-align: center;
+  line-height: 30px;
+  cursor: pointer;
+}
+
+.leaflet-control-zoom-in:hover,
+.leaflet-control-zoom-out:hover {
+  background-color: #f4f4f4;
+}
+
+/* Hide default zoom control in top-left if it appears */
+.leaflet-control-zoom.leaflet-bar {
+  display: none !important;
+}

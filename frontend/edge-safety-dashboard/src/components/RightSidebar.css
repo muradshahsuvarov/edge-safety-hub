@@ -1,0 +1,152 @@
+.right-sidebar-wrapper {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    width: 300px;
+    display: flex;
+    z-index: 1000;
+    transform: translateX(0%);
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  /* Hidden slides the wrapper (sidebar + button) off-screen */
+  .right-sidebar-wrapper.hidden {
+    transform: translateX(100%);
+  }
+  
+  /* Sidebar content */
+  .right-sidebar {
+    width: 100%;
+    background-color: #111;
+    color: white;
+    padding: 20px;
+    border-left: 1px solid #444;
+    overflow-y: auto;
+  }
+  
+  /* Sidebar Text Styling */
+  .right-sidebar h3,
+  .right-sidebar h4 {
+    margin-bottom: 10px;
+    color: #0a84ff;
+  }
+  
+  .user-profile p,
+  .sensor-readings p,
+  .communication-info p {
+    font-size: 0.9rem;
+    margin: 5px 0;
+    color: #ddd;
+  }
+  
+  .sensor-readings ul {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 10px;
+  }
+  
+  .sensor-readings li {
+    font-size: 0.85rem;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #333;
+    padding: 5px 0;
+  }
+  
+  .quick-actions button {
+    width: 100%;
+    padding: 10px;
+    background-color: #0a84ff;
+    border: none;
+    color: white;
+    margin-top: 10px;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  
+  .quick-actions button:hover {
+    background-color: #0066cc;
+  }
+  
+  /* Toggle Button on the LEFT edge of the sidebar */
+  .toggle-right-sidebar-btn {
+    position: absolute;
+    left: -40px;
+    top: 20px;
+    background-color: #0a84ff;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px 0 0 5px;
+    cursor: pointer;
+    z-index: 1100;
+    transition: background-color 0.3s ease;
+  }
+  
+  .toggle-right-sidebar-btn:hover {
+    background-color: #0066cc;
+  }
+
+  .alerts-section {
+    margin-top: 20px;
+    padding: 10px;
+    border-top: 1px solid #333;
+  }
+  
+  .toggle-alerts-btn {
+    width: 100%;
+    background-color: #222;
+    color: #fff;
+    padding: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  .alerts-list {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  
+  .alert-card {
+    background-color: #1e1e1e;
+    border: 1px solid #444;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    color: #eee;
+  }
+  
+  .alert-card h5 {
+    margin: 0 0 5px;
+    color: #ff5555;
+  }
+  
+  .alert-message {
+    font-style: italic;
+    color: #ccc;
+  }
+
+  .alert-indicator {
+    position: absolute;
+    left: -90px;
+    top: 20px;
+    font-size: 24px;
+    animation: blink 1s infinite;
+    color: #ff5555;
+    z-index: 1100;
+    background-color: #111;
+    padding: 5px 8px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(255, 85, 85, 0.7);
+    cursor: pointer;
+  }
+  
+  @keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1; }
+  }

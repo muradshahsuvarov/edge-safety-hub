@@ -1,0 +1,24 @@
+
+Run venv:
+
+venv\Scripts\Activate.ps1  # For PowerShell
+
+venv\Scripts\activate
+
+Enter PostgreSQL container:
+
+docker exec -it postgres psql -U user -d sensors_db
+
+docker exec -it postgres bash
+
+docker exec -it postgres psql -U postgres -d sensors_db -W
+
+Password is newpassword
+
+Enter PostgreSQL and ask for password:
+
+psql -U user -d sensors_db -W
+
+Run docker compose:
+
+.../backend> docker-compose up --build

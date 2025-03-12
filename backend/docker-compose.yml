@@ -1,0 +1,255 @@
+version: '3.8'
+
+services:
+<<<<<<< HEAD
+=======
+
+  sqlite:
+    image: alpine
+    container_name: sqlite_db
+    restart: always
+    volumes:
+      - sqlite_data:/var/lib/sqlite  # ✅ Shared volume for all SQLite-dependent services
+    entrypoint: >
+      sh -c "apk add --no-cache sqlite && mkdir -p /var/lib/sqlite && touch /var/lib/sqlite/sensor_data.db && tail -f /dev/null"
+
+>>>>>>> 2f2dbe0 (New modifications)
+  postgres:
+    image: postgres:latest
+    container_name: postgres_db
+    restart: always
+    environment:
+<<<<<<< HEAD
+      POSTGRES_USER: postgres  # ✅ Match with database.py
+      POSTGRES_PASSWORD: postgres  # ✅ Match with database.py
+=======
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+>>>>>>> 2f2dbe0 (New modifications)
+      POSTGRES_DB: sensors_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+<<<<<<< HEAD
+    healthcheck:  # ✅ Ensure PostgreSQL is fully started before other services
+=======
+    healthcheck:
+>>>>>>> 2f2dbe0 (New modifications)
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      retries: 5
+      timeout: 5s
+
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: mosquitto_broker
+    restart: always
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+<<<<<<< HEAD
+      - ./config:/mosquitto/config  # ✅ Point to the new folder
+      - ./config/mosquitto.conf:/mosquitto/config/mosquitto.conf  # ✅ Ensure correct config file is used
+
+  data-ingestion:
+    build:
+      context: ./services/data_ingestion  # ✅ Correctly specify the folder where Dockerfile is located
+      dockerfile: Dockerfile  # ✅ Explicitly specify the Dockerfile name
+    container_name: data_ingestion_service
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy  # ✅ Ensures PostgreSQL is fully started before FastAPI
+      mosquitto:
+        condition: service_started
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@postgres_db:5432/sensors_db"  # ✅ Use correct DB credentials
+      MQTT_BROKER: "mosquitto_broker"
+      MQTT_PORT: "1883"
+      MQTT_TOPIC: "sensors/data"
+    ports:
+      - "1883:1883"
+      - "9002:9001"
+
+volumes:
+  postgres_data:
+=======
+      - ./config:/mosquitto/config
+      - ./config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+  zookeeper:
+    image: wurstmeister/zookeeper
+    container_name: zookeeper
+    restart: always
+    ports:
+      - "2181:2181"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo ruok | nc -w 2 zookeeper 2181 || exit 1"]
+      interval: 5s
+      retries: 5
+      timeout: 5s
+
+  kafka:
+    image: wurstmeister/kafka
+    container_name: kafka
+    restart: always
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+  kafka-init:
+    image: wurstmeister/kafka
+    container_name: kafka_init
+    restart: "no"
+    depends_on:
+      kafka:
+        condition: service_started
+    entrypoint: ["/bin/sh", "-c"]
+    command: |
+      "kafka-topics.sh --create --topic sensor_data --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1 || echo 'Topic already exists'"
+
+  sqlite-to-kafka:
+    build:
+      context: .
+      dockerfile: ./services/sqlite-kafka-sync/Dockerfile
+    container_name: sqlite_to_kafka_service
+    restart: always
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+    environment:
+      KAFKA_BROKER: "kafka:9092"
+      KAFKA_TOPIC: "sensor_data"
+      SQLITE_DB: "/var/lib/sqlite/sensor_data.db"  # ✅ Use the correct path
+      SQLITE_TABLE: "sensor_data"
+    volumes:
+      - sqlite_data:/var/lib/sqlite  # ✅ Use the same volume as `sqlite_db`
+    command: ["python", "sqlite_to_kafka.py"]
+
+  kafka-consumer:
+    build:
+      context: .
+      dockerfile: ./services/kafka-consumer/Dockerfile
+    container_name: kafka_consumer_service
+    restart: always
+    depends_on:
+      - kafka
+      - postgres
+    environment:
+      KAFKA_BROKER: "kafka:9092"
+      KAFKA_TOPIC: "sensor_data"
+      DATABASE_URL: "postgresql://postgres:postgres@postgres_db:5432/sensors_db"
+    command: ["python", "consumer.py"]
+
+  mqtt-to-kafka:
+    build:
+      context: .
+      dockerfile: ./services/mqtt-to-kafka/Dockerfile
+    container_name: mqtt_to_kafka_service
+    restart: always
+    depends_on:
+      - kafka
+      - mosquitto
+    environment:
+      MQTT_BROKER: "mosquitto_broker"
+      KAFKA_BROKER: "kafka:9092"
+      MQTT_TOPIC: "sensor/gas_detector"
+      KAFKA_TOPIC: "sensor_data"
+    command: ["python", "/app/mqtt_to_kafka.py"]
+
+  gas-detector:
+    build:
+      context: ../scripts/simulated-sensors/gas_detector  # Ensure this directory contains gas_detector.py and requirements.txt
+      dockerfile: Dockerfile
+    container_name: gas_detector_service
+    restart: always
+    depends_on:
+      - sqlite
+      - mqtt-to-kafka
+    environment:
+      MQTT_BROKER: "mosquitto_broker"
+      SQLITE_DB: "/var/lib/sqlite/sensor_data.db"  # ✅ Use the correct path
+    volumes:
+      - sqlite_data:/var/lib/sqlite  # ✅ Use the same volume as `sqlite_db`
+    command: ["python", "gas_detector.py", "--offline"]
+
+  heart-rate-monitor:
+    build:
+      context: ../scripts/simulated-sensors/heart_rate_monitor  # Ensure this directory contains heart_rate_monitor.py and requirements.txt
+      dockerfile: Dockerfile
+    container_name: heart_rate_monitor_service
+    restart: always
+    depends_on:
+      - sqlite
+      - mqtt-to-kafka
+    environment:
+      MQTT_BROKER: "mosquitto_broker"
+      SQLITE_DB: "/var/lib/sqlite/sensor_data.db"
+    volumes:
+      - sqlite_data:/var/lib/sqlite  # ✅ Use the same volume as `sqlite_db`
+    command: ["python", "heart_rate_monitor.py", "--offline"]
+
+  motion-sensor:
+    build:
+      context: ../scripts/simulated-sensors/motion_sensor  # Ensure this directory contains motion_sensor.py and requirements.txt
+      dockerfile: Dockerfile
+    container_name: motion_sensor_service
+    restart: always
+    depends_on:
+      - sqlite
+      - mqtt-to-kafka
+    environment:
+      MQTT_BROKER: "mosquitto_broker"
+      SQLITE_DB: "/var/lib/sqlite/sensor_data.db"
+    volumes:
+      - sqlite_data:/var/lib/sqlite  # ✅ Use the same volume as `sqlite_db`
+    command: ["python", "motion_sensor.py", "--offline"]
+  
+  alerting-service:
+      build:
+        context: .
+        dockerfile: ./services/alerting-service/Dockerfile
+      container_name: alerting_service
+      restart: always
+      depends_on:
+        - sqlite
+        - virtual-serial  # ✅ Now depends on virtual serial port
+      environment:
+        SQLITE_DB: "/var/lib/sqlite/sensor_data.db"
+        SMTP_SERVER: "smtp.gmail.com"
+        SMTP_PORT: 587
+        EMAIL_USERNAME: "your_email@gmail.com"
+        EMAIL_PASSWORD: "your_email_password"
+        ALERT_EMAIL: "recipient_email@gmail.com"
+        TWILIO_ACCOUNT_SID: "your_twilio_sid"
+        TWILIO_AUTH_TOKEN: "your_twilio_token"
+        TWILIO_PHONE_NUMBER: "+1234567890"
+        ALERT_PHONE_NUMBER: "+9876543210"
+        VIRTUAL_SERIAL_PORT: "/shared/ttyUSB0"
+      volumes:
+        - sqlite_data:/var/lib/sqlite
+        - shared_serial:/shared
+      command: ["python", "alerting_service.py"]
+  
+  virtual-serial:
+    image: alpine
+    container_name: virtual_serial
+    restart: always
+    command: >
+      sh -c "apk add --no-cache socat && mkdir -p /shared && socat -d -d pty,raw,echo=0,link=/shared/ttyUSB0 pty,raw,echo=0"
+    volumes:
+      - shared_serial:/shared 
+
+volumes:
+  sqlite_data:
+  postgres_data:
+  shared_serial:
+>>>>>>> 2f2dbe0 (New modifications)
