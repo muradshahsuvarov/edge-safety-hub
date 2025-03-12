@@ -20,7 +20,7 @@ Edge Safety Hub is a full-stack real-time worker safety monitoring system that s
 
 This diagram shows the data flow from IoT edge sensors through MQTT, Kafka, and database systems to the frontend dashboard and alerting system.
 
-![System Architecture](./assets/system_architecture.png)
+![System Architecture](./assets/system_architecture.jpeg)
 
 
 ---
